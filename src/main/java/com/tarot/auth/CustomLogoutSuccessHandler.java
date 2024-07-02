@@ -33,20 +33,8 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
 
 //        cookieProvider.removeCookies(response); //쿠키사용 제거
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        SecurityContextHolder.clearContext();
         log.info("#####auth{}",auth);
-        if (auth != null) {
-            log.info("#####logout auth###");
-            new SecurityContextLogoutHandler().logout(request, response, auth);
-        }
-
-        // Spring Security 컨텍스트에서 로그아웃
-        /*
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        log.info("#####auth{}",auth);
-        if (auth != null) {
-            log.info("#####logout auth###");
-            new SecurityContextLogoutHandler().logout(request, response, auth);
-        }
 
         // OAuth2 클라이언트 정보 제거
         if (auth instanceof OAuth2AuthenticationToken) {
@@ -56,12 +44,6 @@ public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
                     oauthToken.getAuthorizedClientRegistrationId(),
                     oauthToken.getName()
             );
-
-        }
-
-         */
-
-        log.info("redirect###");
-        response.sendRedirect("/");
+}
     }
 }

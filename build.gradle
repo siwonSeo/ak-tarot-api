@@ -23,7 +23,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+//    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
     implementation group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
@@ -36,10 +36,12 @@ dependencies {
     implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.3.1'
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.11.0'
     implementation 'org.springframework.boot:spring-boot-devtools'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+//    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'mysql:mysql-connector-java:8.0.33'
     implementation 'com.vladmihalcea:hibernate-types-60:2.21.1'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
     // p6spy
     implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
     implementation 'com.fasterxml.jackson.core:jackson-databind'

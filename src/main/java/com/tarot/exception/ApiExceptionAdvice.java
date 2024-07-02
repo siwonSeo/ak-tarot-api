@@ -1,18 +1,12 @@
 package com.tarot.exception;
 
-import com.tarot.code.ErrorCode;
+import com.tarot.code.ErrorStatusMessage;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindException;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
-import java.util.stream.Collectors;
 
 @Slf4j
 @ControllerAdvice
@@ -47,12 +41,12 @@ public class ApiExceptionAdvice {
     public String exceptionHandler(Exception e, Model model) {
         log.info("#Exception:{}", e.getMessage());
 //        return this.getResponseEntity(ErrorCode.API_UNKNOWN_ERROR);
-        model.addAttribute("message", ErrorCode.API_UNKNOWN_ERROR.getMessage());
+        model.addAttribute("message", ErrorStatusMessage.INTERNAL_SERVER.getMessage());
         return "error";
     }
 
-    private ResponseEntity<ApiExceptionEntity> getResponseEntity(ErrorCode errorCode){
-        return this.getResponseEntity(errorCode.getHttpStatus(),errorCode.getMessage());
+    private ResponseEntity<ApiExceptionEntity> getResponseEntity(ErrorStatusMessage errorStatusMessage){
+        return this.getResponseEntity(errorStatusMessage.getHttpStatus(), errorStatusMessage.getMessage());
     }
 
     private ResponseEntity<ApiExceptionEntity> getResponseEntity(HttpStatus status, String message){

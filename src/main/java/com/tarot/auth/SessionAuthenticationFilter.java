@@ -15,7 +15,8 @@ import java.io.IOException;
 import java.util.Arrays;
 
 @Slf4j
-@Component
+//@Component
+@Deprecated // 미사용
 @RequiredArgsConstructor
 public class SessionAuthenticationFilter extends OncePerRequestFilter {
     private final String[] excludeUrls = {"/user","/api/user"};
