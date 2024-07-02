@@ -58,29 +58,14 @@ public class UserService {
         CustomUserDetails customUserDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Page<UserBaseInterpretation> interpretations = userBaseInterpretationRepository.findByUserId(customUserDetails.getId(), pageable);
 
-        return interpretations.map(this::convertToDto);
-    }
-
-    private ResponseUserTarotCardConsult convertToDto(UserBaseInterpretation entity) {
-        List<RequestTarotCard.TarotCardSearch> searchCards;
-        try {
-            searchCards = objectMapper.readValue(
-                    objectMapper.writeValueAsString(entity.getSearchCards()),
-                    new TypeReference<List<RequestTarotCard.TarotCardSearch>>() {}
-            );
-        } catch (JsonProcessingException e) {
-            log.error("Error converting searchCards", e);
-            searchCards = List.of(); // 또는 적절한 예외 처리
-        }
-
-        return new ResponseUserTarotCardConsult(
+        return interpretations.map(entity->new ResponseUserTarotCardConsult(
                 entity.getId(),
                 entity.getUserId(),
                 entity.getCardCount(),
                 entity.getIsReverseOn(),
                 entity.getCategoryCode(),
                 entity.getCreatedAt(),
-                searchCards
-        );
+                entity.getSearchCards()
+        ));
     }
 }
