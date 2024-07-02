@@ -3,8 +3,7 @@ package com.tarot.config;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
-import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.security.*;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -27,7 +26,22 @@ public class SwaggerConfig {
         SecurityRequirement securityRequirement = new SecurityRequirement().addList("bearerAuth");
 
         return new OpenAPI()
-                .components(new Components().addSecuritySchemes("bearerAuth", securityScheme))
+                .components(new Components()
+                        .addSecuritySchemes("bearerAuth", securityScheme)
+                        .addSecuritySchemes("google_auth", new SecurityScheme()
+                                .type(SecurityScheme.Type.OAUTH2)
+                                .flows(new OAuthFlows()
+                                        .authorizationCode(new OAuthFlow()
+                                                .authorizationUrl("https://accounts.google.com/o/oauth2/auth")
+                                                .tokenUrl("https://oauth2.googleapis.com/token")
+                                                .scopes(new Scopes()
+                                                        .addString("openid", "OpenID scope")
+                                                        .addString("profile", "Profile scope")
+                                                        .addString("email", "Email scope"))
+                                        )
+                                )
+                        )
+                )
                 .security(Arrays.asList(securityRequirement));
     }
 

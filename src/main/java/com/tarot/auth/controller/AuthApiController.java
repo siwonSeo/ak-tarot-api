@@ -1,32 +1,32 @@
 package com.tarot.auth.controller;
 
 import com.tarot.config.DisableSwaggerSecurity;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.*;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.Collections;
+import org.springframework.web.bind.annotation.*;
 
 
+@Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
 @RestController
-public class Auth2Controller {
+@CrossOrigin(origins = {"http://localhost:8080", "http://localhost:3000"}, allowCredentials = "true")
+public class AuthApiController {
 //  private final RsaService rsaService;
 //  private final AuthService authService;
-  private ClientRegistrationRepository clientRegistrationRepository;
+  private final ClientRegistrationRepository clientRegistrationRepository;
+
+  @Operation(security = { @SecurityRequirement(name = "google_auth") })
   @DisableSwaggerSecurity
-  @GetMapping("/oauth2/authorize/{registrationId}")
+  @GetMapping("/authorize/{registrationId}")
   public ResponseEntity<?> getAuthorizationUrl(@PathVariable String registrationId) {
+    System.out.println("여긴어디!");
+    log.debug("여긴어디!");
     ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(registrationId);
     if (clientRegistration == null) {
       return ResponseEntity.badRequest().body("Unknown client registration id");
@@ -37,8 +37,12 @@ public class Auth2Controller {
             + "&response_type=code"
             + "&redirect_uri=" + clientRegistration.getRedirectUri()
             + "&scope=" + String.join(" ", clientRegistration.getScopes());
-
-    return ResponseEntity.ok(Collections.singletonMap("authorizationUrl", authorizationUri));
+    System.out.println(authorizationUri);
+    log.debug(authorizationUri);
+//    return ResponseEntity.status(HttpStatus.FOUND)
+////            .location(URI.create(authorizationUri))
+//            .location(URI.create(authorizationUri.replace(" ", "%20")))
+//            .build();
+      return ResponseEntity.ok("{\"authorizationUri\":\"" + authorizationUri + "\"}");
   }
-
 }
