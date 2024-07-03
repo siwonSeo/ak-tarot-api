@@ -19,7 +19,7 @@ public class TarotApplication {
 		SpringApplication.run(TarotApplication.class, args);
 	}
 
-	@PostConstruct
+//	@PostConstruct
 	private void init() throws IOException, ParseException {
 		tarotDataService.setDefaultData();
 	}

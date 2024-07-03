@@ -72,6 +72,7 @@ public class SecurityConfig {
 //                )
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 //                .cors(cors -> cors.configurationSource(corsConfigurationSource()))

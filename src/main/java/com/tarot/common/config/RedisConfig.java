@@ -27,6 +27,8 @@ public class RedisConfig {
         int port = redisProperties.getPort();
         String pass = redisProperties.getPassword();
 
+        log.info("##redis {}:{}",host,port);
+
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
         redisStandaloneConfiguration.setHostName(host);
         redisStandaloneConfiguration.setPort(port);

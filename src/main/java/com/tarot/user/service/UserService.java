@@ -30,7 +30,7 @@ public class UserService {
             , Character categoryCode, List<RequestTarotCard.TarotCardSearch> params){
         try {
             CustomUserDetails customUserDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            log.debug("UserService saveUserConsult:{}",customUserDetails);
+            log.info("UserService saveUserConsult:{}",customUserDetails);
             if(customUserDetails != null) {
                 userBaseInterpretationRepository.save(new UserBaseInterpretation(
                         customUserDetails.getId()
@@ -41,7 +41,7 @@ public class UserService {
                 ));
             }
         }catch (Exception e){
-            log.debug("상담이력 저장 오류:{}",e.getMessage());
+            log.info("상담이력 저장 오류:{}",e.getMessage());
         }
 
     }

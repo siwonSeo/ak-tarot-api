@@ -1,14 +1,13 @@
 package com.tarot.common.jwt;
 
 import com.tarot.common.code.ErrorStatusMessage;
-import com.tarot.common.service.UserDetailsServiceImpl;
 import com.tarot.common.exception.ApiException;
+import com.tarot.common.service.UserDetailsServiceImpl;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,26 +15,21 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
 public class JwtTokenProvider {
     private final Key signingKey;
-    private final RedisTemplate<String, String> redisTemplate;
+//    private final RedisTemplate<String, String> redisTemplate;
     private final UserDetailsServiceImpl userDetailsService;
-
     @Value("${jwt.accessToken.validityInMinutes}")
     private long validityInMinutes;
 
     @Value("${jwt.refreshToken.validityInHours}")
     private long validityInHours;
-
     public JwtTokenProvider(@Value("${jwt.secret}") String secretKey,
-                            RedisTemplate<String, String> redisTemplate,
                             UserDetailsServiceImpl userDetailsService) {
         this.signingKey = Keys.hmacShaKeyFor(secretKey.getBytes());
-        this.redisTemplate = redisTemplate;
         this.userDetailsService = userDetailsService;
     }
     /**
@@ -54,11 +48,16 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    public String getUserId(String token) {
+        Jws<Claims> claims = Jwts.parser().setSigningKey(signingKey).parseClaimsJws(token);
+        return claims.getBody().getSubject();
+    }
+
     /**
      * Refresh 토큰 생성 및 레디스 저장
      */
-    public String createRefreshToken(Authentication authentication) {
-        Claims claims = Jwts.claims().setSubject(authentication.getName());
+    public String createRefreshToken(UserDetails userDetails) {
+        Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
         Date now = new Date();
         Long REFRESH_TOKEN_VALIDITY = validityInHours * 60 * 60 * 1000;
         Date expireDate = new Date(System.currentTimeMillis() + REFRESH_TOKEN_VALIDITY);
@@ -70,9 +69,9 @@ public class JwtTokenProvider {
                 .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
 
-        // 레디스 저장
-        redisTemplate.opsForValue().set(
-                authentication.getName(), refreshToken, REFRESH_TOKEN_VALIDITY, TimeUnit.MILLISECONDS);
+//        // 레디스 저장
+//        redisTemplate.opsForValue().set(
+//                userDetails.getUsername(), refreshToken, REFRESH_TOKEN_VALIDITY, TimeUnit.MILLISECONDS);
 
         return refreshToken;
     }
@@ -108,13 +107,6 @@ public class JwtTokenProvider {
      */
     public boolean validateToken(String token) {
         try {
-
-            // 블랙리스트에 존재하는지 확인
-            if (redisTemplate.opsForValue().get(token) != null) {
-                log.error("Blacklisted JWT token");
-                throw new ApiException(ErrorStatusMessage.UN_AUTHORIZED);
-            }
-
             Jwts.parserBuilder()
                     .setSigningKey(signingKey)
                     .build()
@@ -123,7 +115,7 @@ public class JwtTokenProvider {
         } catch (ExpiredJwtException e) {
             log.error("Expired JWT token");
             throw new ApiException(ErrorStatusMessage.TOKEN_EXPIRED);
-        } catch (io.jsonwebtoken.JwtException e) {
+        } catch (JwtException e) {
             log.error("Invalid JWT token");
             throw new ApiException(ErrorStatusMessage.UN_AUTHORIZED);
         }
@@ -132,6 +124,8 @@ public class JwtTokenProvider {
     /**
      * 만료된 access token 을 통해 레디스 서버에서 리프레쉬 토큰 검증 후 액세스 토큰 재발급
      */
+
+    /*
     public String reissueAccessToken(String expiredAccessToken, String refreshToken) {
         // 입력된 리프레쉬 토큰 검증
         verifyToken(refreshToken);
@@ -154,9 +148,13 @@ public class JwtTokenProvider {
         }
     }
 
+     */
+
     /**
      * 사용자 id 통해 레디스 서버에서 리프레쉬 토큰 검증 후 액세스 토큰 재발급
      */
+
+    /*
     public String reissueAccessTokenById(String id, String refreshToken) {
 
         // 레디스에서 username을 키로 가지는 refresh token 조회
@@ -176,9 +174,12 @@ public class JwtTokenProvider {
         }
     }
 
+     */
+
     /**
      * 만료된 access token 을 통해 레디스 서버에서 리프레쉬 토큰을 조회 및 만료 여부 검증
      */
+    /*
     public boolean validateRefreshToken(String expiredAccessToken) {
         try {
             // 만료된 access token에서 username 추출
@@ -216,6 +217,8 @@ public class JwtTokenProvider {
         }
     }
 
+     */
+
     /**
      * 만료된 access token에서 username 추출
      */
@@ -251,43 +254,43 @@ public class JwtTokenProvider {
      * access 토큰 레디스 블랙리스트 추가 및 refresh 토큰 삭제
      * 만료된 access 토큰의 경우 블랙리스트에 추가하지 않고 refresh 토큰만 삭제
      */
-    public void addToBlacklist(String accessToken) {
-        try {
-            // 액세스 토큰에서 만료 시간 추출
-            Date expirationDate = Jwts.parserBuilder()
-                    .setSigningKey(signingKey)
-                    .build()
-                    .parseClaimsJws(accessToken)
-                    .getBody()
-                    .getExpiration();
-
-            // 액세스 토큰에서 subject(사용자 ID) 추출
-            String subject = Jwts.parserBuilder()
-                    .setSigningKey(signingKey)
-                    .build()
-                    .parseClaimsJws(accessToken)
-                    .getBody()
-                    .getSubject();
-
-            // 액세스 토큰이 만료되지 않은 경우에만 블랙리스트에 추가
-            if (expirationDate.after(new Date())) {
-                // 액세스 토큰을 키로, 만료 시간을 값으로 하여 레디스에 저장
-                redisTemplate.opsForValue().set(accessToken, "blacklisted",
-                        expirationDate.getTime() - System.currentTimeMillis(),
-                        TimeUnit.MILLISECONDS);
-            }
-
-            // 사용자 ID를 키로 하여 레디스에서 리프레시 토큰 삭제
-            redisTemplate.delete(subject);
-        } catch (ExpiredJwtException e) {
-            // 만료된 액세스 토큰에서 subject(사용자 ID) 추출
-            String subject = e.getClaims().getSubject();
-
-            // 사용자 ID를 키로 하여 레디스에서 리프레시 토큰 삭제
-            redisTemplate.delete(subject);
-        } catch (JwtException e) {
-            log.error("Invalid access token");
-            throw new ApiException(ErrorStatusMessage.UN_AUTHORIZED);
-        }
-    }
+//    public void addToBlacklist(String accessToken) {
+//        try {
+//            // 액세스 토큰에서 만료 시간 추출
+//            Date expirationDate = Jwts.parserBuilder()
+//                    .setSigningKey(signingKey)
+//                    .build()
+//                    .parseClaimsJws(accessToken)
+//                    .getBody()
+//                    .getExpiration();
+//
+//            // 액세스 토큰에서 subject(사용자 ID) 추출
+//            String subject = Jwts.parserBuilder()
+//                    .setSigningKey(signingKey)
+//                    .build()
+//                    .parseClaimsJws(accessToken)
+//                    .getBody()
+//                    .getSubject();
+//
+//            // 액세스 토큰이 만료되지 않은 경우에만 블랙리스트에 추가
+//            if (expirationDate.after(new Date())) {
+//                // 액세스 토큰을 키로, 만료 시간을 값으로 하여 레디스에 저장
+//                redisTemplate.opsForValue().set(accessToken, "blacklisted",
+//                        expirationDate.getTime() - System.currentTimeMillis(),
+//                        TimeUnit.MILLISECONDS);
+//            }
+//
+//            // 사용자 ID를 키로 하여 레디스에서 리프레시 토큰 삭제
+//            redisTemplate.delete(subject);
+//        } catch (ExpiredJwtException e) {
+//            // 만료된 액세스 토큰에서 subject(사용자 ID) 추출
+//            String subject = e.getClaims().getSubject();
+//
+//            // 사용자 ID를 키로 하여 레디스에서 리프레시 토큰 삭제
+//            redisTemplate.delete(subject);
+//        } catch (JwtException e) {
+//            log.error("Invalid access token");
+//            throw new ApiException(ErrorStatusMessage.UN_AUTHORIZED);
+//        }
+//    }
 }

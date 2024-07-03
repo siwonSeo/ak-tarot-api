@@ -23,8 +23,6 @@ public class AuthApiController {
   @DisableSwaggerSecurity
   @GetMapping("/api/auth/authorize/{registrationId}")
   public ResponseEntity<?> getAuthorizationUrl(@PathVariable String registrationId) {
-    System.out.println("여긴어디!");
-    log.debug("여긴어디!");
     ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(registrationId);
     if (clientRegistration == null) {
       return ResponseEntity.badRequest().body("Unknown client registration id");

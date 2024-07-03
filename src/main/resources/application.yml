@@ -45,7 +45,7 @@ spring:
     database: mysql
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: none
     properties:
       hibernate:
 #        dialect: org.hibernate.dialect.H2Dialect
@@ -59,6 +59,11 @@ spring:
     redis:
       host: localhost
       port: 6379
+      accessToken:
+        validityInMinutes: 60
+      refreshToken:
+        validityInHours: 168
+
 
 jwt:
   secret: dGVzdGNucHNlY3JldGtleXRlc3RjbnBzZWNyZXRrZXl0ZXN0Y25wc2VjcmV0a2V5dGVzdGNucHNlY3JldGtleQ==

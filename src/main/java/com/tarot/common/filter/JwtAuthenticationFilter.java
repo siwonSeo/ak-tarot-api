@@ -3,6 +3,7 @@ package com.tarot.common.filter;
 import com.tarot.common.jwt.JwtTokenProvider;
 import com.tarot.common.code.ErrorStatusMessage;
 import com.tarot.common.exception.ApiException;
+import com.tarot.common.service.RedisService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,15 +25,23 @@ import java.util.Arrays;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final String[] excludeUrls = {"/user","/api/user"};
     private final JwtTokenProvider jwtTokenProvider;
+    private final RedisService redisService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try{
             String token = jwtTokenProvider.resolveToken(request);
 
+
             if (token != null && jwtTokenProvider.validateToken(token)) {
-                Authentication auth = jwtTokenProvider.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(auth); // 정상 토큰이면 SecurityContext에 저장
+                String id = jwtTokenProvider.getUserId(token);
+                if(id != null && token.equals(redisService.getValue(id))){
+                    Authentication auth = jwtTokenProvider.getAuthentication(token);
+                    SecurityContextHolder.getContext().setAuthentication(auth); // 정상 토큰이면 SecurityContext에 저장
+                }else{
+                    log.info("레디스 토큰값");
+                    throw new Exception("레디스 토큰확인");
+                }
             }else{
                 log.info("토큰 만료됨!!!!!!!!!!");
                 throw new Exception("토큰만료");

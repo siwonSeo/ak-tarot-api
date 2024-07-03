@@ -1,8 +1,11 @@
 package com.tarot.auth.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.tarot.auth.dto.response.ResponseToken;
+import com.tarot.common.constants.Constant;
 import com.tarot.common.dto.CustomUserDetails;
 import com.tarot.common.jwt.JwtTokenProvider;
+import com.tarot.common.service.RedisService;
 import com.tarot.user.entity.UserBase;
 import com.tarot.user.repository.UserBaseRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,23 +24,25 @@ import java.util.Collections;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class LoginService {
+public class AuthService {
 
     private final Environment env;
     private final RestTemplate restTemplate;
-    //    @Autowired
+    private final RedisService redisService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    //    @Autowired
     private final UserBaseRepository userBaseRepository;
 
-    @Value("${server.servlet.session.timeout}")
-    private int TIMEOUT_SECOND;
+    @Value("${spring.data.redis.accessToken.validityInMinutes}")
+    private long validityRedisInMinutes;
 
-    public String socialLogin(String code, String registrationId) {
+    @Value("${spring.data.redis.refreshToken.validityInHours}")
+    private long validityRedisInHours;
+
+    public ResponseToken socialLogin(String code, String registrationId) {
         log.info("======================================================");
-        String accessToken = getAccessToken(code, registrationId);
-        JsonNode userResourceNode = getUserResource(accessToken, registrationId);
+        String token = getToken(code, registrationId);
+        JsonNode userResourceNode = getUserResource(token, registrationId);
 
         System.out.println("userResourceNode:" + userResourceNode);
         log.info("userResourceNode = {}", userResourceNode);
@@ -50,7 +55,7 @@ public class LoginService {
                 ()-> userBaseRepository.save(new UserBase(email, name, picture))
         );
 
-        UserDetails userDetails = new CustomUserDetails(
+        CustomUserDetails userDetails = new CustomUserDetails(
                 user.getId(),
                 "",
                 user.getEmail(),
@@ -58,8 +63,20 @@ public class LoginService {
                 user.getPicture(),
                 Collections.emptyList());
 
-        String token = jwtTokenProvider.createAccessToken(userDetails);
-        return "{\"token\":\"" + token + "\"}";
+        String accessToken = jwtTokenProvider.createAccessToken(userDetails);
+        String refreshToken = jwtTokenProvider.createRefreshToken(userDetails);
+
+        redisService.setValue(Constant.REDIS_ACCESS_TOKEN_KEY+userDetails.getId(),accessToken,validityRedisInMinutes * 60 * 1000);
+        redisService.setValue(Constant.REDIS_REFRESH_TOKEN_KEY+userDetails.getId(),refreshToken,validityRedisInHours * 60 * 60 * 1000);
+
+        return new ResponseToken(
+             accessToken
+            ,refreshToken
+            ,userDetails.getId()
+            ,userDetails.getEmail()
+            ,userDetails.getName()
+            ,userDetails.getPicture()
+        );
 //        switch (registrationId) {
 //            case "google": {
 //                userResource.setId(userResourceNode.get("id").asText());
@@ -82,7 +99,7 @@ public class LoginService {
 //        }
     }
 
-    private String getAccessToken(String authorizationCode, String registrationId) {
+    private String getToken(String authorizationCode, String registrationId) {
         String clientId = env.getProperty("security.oauth2.client.registration." + registrationId + ".client-id");
         String clientSecret = env.getProperty("security.oauth2.client.registration." + registrationId + ".client-secret");
         String redirectUri = env.getProperty("security.oauth2.client.registration." + registrationId + ".redirect-uri");
