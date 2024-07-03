@@ -52,7 +52,7 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
                 user.getPicture(),
                 Collections.emptyList());
 
-        String token = jwtTokenProvider.createAccessToken(userDetails);
+        String token = jwtTokenProvider.createAccessToken(authentication);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(

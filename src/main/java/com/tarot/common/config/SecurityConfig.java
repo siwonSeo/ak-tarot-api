@@ -1,5 +1,9 @@
 package com.tarot.common.config;
 
+import com.tarot.auth.handler.OAuth2FailureHandler;
+import com.tarot.auth.handler.OAuth2SuccessHandler;
+import com.tarot.auth.service.AuthService;
+import com.tarot.auth.service.CustomOAuth2UserService;
 import com.tarot.common.filter.JwtAuthenticationFilter;
 import com.tarot.common.handler.CustomOAuth2AuthenticationFailureHandler;
 import com.tarot.common.handler.CustomOAuth2AuthenticationSuccessHandler;
@@ -12,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,49 +40,53 @@ public class SecurityConfig {
             , "/swagger-ui/**"
             , "/v3/api-docs/**"
             , "/auth/**"
-            , "/login/oauth2/**"
+            , "/login/**"
+//            , "/login/oauth2/**"
             , "/oauth2/**"
             , "/css/**"
             , "/js/**"
             , "/img/**"
             , "/favicon.ico"
+            , "/error"
     };
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtTokenProvider jwtTokenProvider;
+    private final AuthService authService;
 
     //    @Autowired
     private final UserBaseRepository userBaseRepository;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable)
+//                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
+                .headers(c -> c.frameOptions(
+                        HeadersConfigurer.FrameOptionsConfig::disable).disable())
+                .sessionManagement(c ->
+                        c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers(PERMIT_URLS).permitAll()
                         .anyRequest().authenticated()
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-//                .oauth2Login(oauth2 -> oauth2
-////                        .loginPage("/api/auth/login")
-////                        .authorizationEndpoint(authorization -> authorization
-////                                .baseUri("/api/auth/oauth2/authorize"))
-////                        .redirectionEndpoint(redirection -> redirection
-////                                .baseUri("/login/oauth2/callback/**"))
-////                                .baseUri("/login/oauth2/code/*"))
-////                                .userInfoEndpoint(userInfoEndpointConfig ->
-////                                        userInfoEndpointConfig
-////                                                .userService(oAuth2UserService)
-////                                )
-//                        .successHandler(oAuth2AuthenticationSuccessHandler())
-//                        .failureHandler(oAuth2AuthenticationFailureHandler())
-//                )
-                .exceptionHandling(e -> e
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable);
-
+                .oauth2Login(oauth2 -> oauth2
+                                .userInfoEndpoint(userInfoEndpointConfig ->
+                                        userInfoEndpointConfig
+                                                .userService(customOAuth2UserService)
+                                )
+                                .successHandler(oAuth2SuccessHandler)
+                                .failureHandler(new OAuth2FailureHandler())
+                )
+//                .exceptionHandling(e -> e
+//                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
         ;
         return http.build();
     }

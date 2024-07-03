@@ -43,8 +43,12 @@ public class TarotApiController {
     @Tag(name="카드")
     @Operation(summary = "카드 상담(수동)", description = "카드 해석(수동)")
     @PostMapping("/card/consult/self")
-    public ResponseEntity<List<ResponseTarotCardConsult>> getTaroCardConsultSelf(@RequestBody List<RequestTarotCard.TarotCardSearch> cards) {
-        return new ResponseEntity<>(tarotService.getTaroCardConsultsBySelf(cards), HttpStatus.OK);
+    public ResponseEntity<List<ResponseTarotCardConsult>> getTaroCardConsultSelf(
+              @RequestParam(name = "cardCount") int cardCount
+            , @RequestParam(name = "isReverseOn") Boolean isReverseOn //역방향 활성화 여부
+            , @RequestParam(name = "categoryCode") Character categoryCode
+            , @RequestBody List<RequestTarotCard.TarotCardSearch> cards) {
+        return new ResponseEntity<>(tarotService.getTaroCardConsultsBySelf(cardCount, isReverseOn, categoryCode, cards), HttpStatus.OK);
     }
 
     @Tag(name="카드")

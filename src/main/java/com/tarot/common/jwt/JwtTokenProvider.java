@@ -35,8 +35,8 @@ public class JwtTokenProvider {
     /**
      * Access 토큰 생성
      */
-    public String createAccessToken(UserDetails userDetails) {
-        Claims claims = Jwts.claims().setSubject(userDetails.getUsername());
+    public String createAccessToken(Authentication authentication) {
+        Claims claims = Jwts.claims().setSubject(authentication.getName());
         Date now = new Date();
         Date expireDate = new Date(System.currentTimeMillis() + validityInMinutes * 60 * 1000);
 

@@ -35,12 +35,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (token != null && jwtTokenProvider.validateToken(token)) {
                 String id = jwtTokenProvider.getUserId(token);
-                if(id != null && token.equals(redisService.getValue(id))){
+                log.info("filter id:{}",id);
+                if(id != null && token.equals(redisService.getValue(jwtTokenProvider.getUserId(token)))){
                     Authentication auth = jwtTokenProvider.getAuthentication(token);
                     SecurityContextHolder.getContext().setAuthentication(auth); // 정상 토큰이면 SecurityContext에 저장
                 }else{
-                    log.info("레디스 토큰값");
-                    throw new Exception("레디스 토큰확인");
+                    log.info("캐시에 없음!!!!!!!!!!");
+                    throw new Exception("캐시에 없음");
                 }
             }else{
                 log.info("토큰 만료됨!!!!!!!!!!");

@@ -1,6 +1,8 @@
 package com.tarot.auth.controller;
 
+import com.tarot.auth.dto.response.LoginResponse;
 import com.tarot.common.config.DisableSwaggerSecurity;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -21,7 +23,7 @@ public class AuthApiController {
 
 //  @Operation(security = { @SecurityRequirement(name = "google_auth") })
   @DisableSwaggerSecurity
-  @GetMapping("/api/auth/authorize/{registrationId}")
+  @GetMapping("/authorize/{registrationId}")
   public ResponseEntity<?> getAuthorizationUrl(@PathVariable String registrationId) {
     ClientRegistration clientRegistration = clientRegistrationRepository.findByRegistrationId(registrationId);
     if (clientRegistration == null) {
@@ -40,5 +42,10 @@ public class AuthApiController {
 //            .location(URI.create(authorizationUri.replace(" ", "%20")))
 //            .build();
       return ResponseEntity.ok("{\"authorizationUri\":\"" + authorizationUri + "\"}");
+  }
+
+  @GetMapping("/success")
+  public ResponseEntity<LoginResponse> loginSuccess(@Valid LoginResponse loginResponse) {
+    return ResponseEntity.ok(loginResponse);
   }
 }

@@ -13,6 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.*;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -55,7 +58,7 @@ public class AuthService {
                 ()-> userBaseRepository.save(new UserBase(email, name, picture))
         );
 
-        CustomUserDetails userDetails = new CustomUserDetails(
+        CustomUserDetails customUserDetails = new CustomUserDetails(
                 user.getId(),
                 "",
                 user.getEmail(),
@@ -63,19 +66,23 @@ public class AuthService {
                 user.getPicture(),
                 Collections.emptyList());
 
-        String accessToken = jwtTokenProvider.createAccessToken(userDetails);
-        String refreshToken = jwtTokenProvider.createRefreshToken(userDetails);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                customUserDetails, null, customUserDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        redisService.setValue(Constant.REDIS_ACCESS_TOKEN_KEY+userDetails.getId(),accessToken,validityRedisInMinutes * 60 * 1000);
-        redisService.setValue(Constant.REDIS_REFRESH_TOKEN_KEY+userDetails.getId(),refreshToken,validityRedisInHours * 60 * 60 * 1000);
+        String accessToken = jwtTokenProvider.createAccessToken(authentication);
+        String refreshToken = jwtTokenProvider.createRefreshToken(customUserDetails);
+
+        redisService.setValue(Constant.REDIS_ACCESS_TOKEN_KEY+customUserDetails.getId(),accessToken,validityRedisInMinutes * 60 * 1000);
+        redisService.setValue(Constant.REDIS_REFRESH_TOKEN_KEY+customUserDetails.getId(),refreshToken,validityRedisInHours * 60 * 60 * 1000);
 
         return new ResponseToken(
              accessToken
             ,refreshToken
-            ,userDetails.getId()
-            ,userDetails.getEmail()
-            ,userDetails.getName()
-            ,userDetails.getPicture()
+            ,customUserDetails.getId()
+            ,customUserDetails.getEmail()
+            ,customUserDetails.getName()
+            ,customUserDetails.getPicture()
         );
 //        switch (registrationId) {
 //            case "google": {
