@@ -1,10 +1,9 @@
 package com.tarot.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tarot.dto.request.RequestTarotCard;
-import com.tarot.service.TarotService;
+import com.tarot.tarot.dto.request.RequestTarotCard;
+import com.tarot.tarot.service.TarotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

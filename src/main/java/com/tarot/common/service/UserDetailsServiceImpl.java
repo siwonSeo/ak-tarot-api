@@ -1,16 +1,14 @@
 package com.tarot.common.service;
 
-import com.tarot.auth.CustomUserDetails;
-import com.tarot.code.ErrorStatusMessage;
-import com.tarot.entity.user.UserBase;
-import com.tarot.exception.ApiException;
-import com.tarot.repository.UserBaseRepository;
+import com.tarot.common.dto.CustomUserDetails;
+import com.tarot.common.code.ErrorStatusMessage;
+import com.tarot.user.entity.UserBase;
+import com.tarot.common.exception.ApiException;
+import com.tarot.user.repository.UserBaseRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;

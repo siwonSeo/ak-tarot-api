@@ -45,7 +45,7 @@ spring:
     database: mysql
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: none
+      ddl-auto: create
     properties:
       hibernate:
 #        dialect: org.hibernate.dialect.H2Dialect
@@ -54,7 +54,7 @@ spring:
         format_sql: true
         encoding: UTF-8
         type:
-          json_format_mapper: com.tarot.config.CustomJacksonJsonFormatMapper
+          json_format_mapper: com.tarot.common.config.CustomJacksonJsonFormatMapper
   data:
     redis:
       host: localhost

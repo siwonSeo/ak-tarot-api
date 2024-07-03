@@ -1,8 +1,6 @@
 package com.tarot.auth.controller;
 
-import com.tarot.config.DisableSwaggerSecurity;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import com.tarot.common.config.DisableSwaggerSecurity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
@@ -15,15 +13,15 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
 @RestController
-@CrossOrigin(origins = {"http://localhost:8080", "http://localhost:3000"}, allowCredentials = "true")
+//@CrossOrigin(origins = {"http://localhost:8080", "http://localhost:3000"}, allowCredentials = "true")
 public class AuthApiController {
 //  private final RsaService rsaService;
 //  private final AuthService authService;
   private final ClientRegistrationRepository clientRegistrationRepository;
 
-  @Operation(security = { @SecurityRequirement(name = "google_auth") })
+//  @Operation(security = { @SecurityRequirement(name = "google_auth") })
   @DisableSwaggerSecurity
-  @GetMapping("/authorize/{registrationId}")
+  @GetMapping("/api/auth/authorize/{registrationId}")
   public ResponseEntity<?> getAuthorizationUrl(@PathVariable String registrationId) {
     System.out.println("여긴어디!");
     log.debug("여긴어디!");

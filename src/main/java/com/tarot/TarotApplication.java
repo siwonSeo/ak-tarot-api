@@ -1,7 +1,6 @@
 package com.tarot;
 
-import com.tarot.service.TarotDataService;
-import com.tarot.service.TarotService;
+import com.tarot.tarot.service.TarotDataService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.parser.ParseException;
@@ -20,7 +19,7 @@ public class TarotApplication {
 		SpringApplication.run(TarotApplication.class, args);
 	}
 
-//	@PostConstruct
+	@PostConstruct
 	private void init() throws IOException, ParseException {
 		tarotDataService.setDefaultData();
 	}
