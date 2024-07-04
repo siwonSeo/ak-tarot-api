@@ -23,6 +23,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -58,6 +60,9 @@ public class AuthService {
                 ()-> userBaseRepository.save(new UserBase(email, name, picture))
         );
 
+        Map<String, Object> attributes = new HashMap<>();
+        userResourceNode.fields().forEachRemaining(entry -> attributes.put(entry.getKey(), entry.getValue().asText()));
+
         CustomUserDetails customUserDetails = new CustomUserDetails(
                 user.getId(),
                 "",
@@ -65,6 +70,9 @@ public class AuthService {
                 user.getName(),
                 user.getPicture(),
                 Collections.emptyList());
+
+        customUserDetails.setAttributes(attributes);
+        customUserDetails.setAttributeKey("sub");
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 customUserDetails, null, customUserDetails.getAuthorities());

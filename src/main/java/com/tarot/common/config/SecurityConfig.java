@@ -41,6 +41,7 @@ public class SecurityConfig {
             , "/v3/api-docs/**"
             , "/auth/**"
             , "/login/**"
+            , "/login/oauth2/code/**"
 //            , "/login/oauth2/**"
             , "/oauth2/**"
             , "/css/**"
@@ -78,12 +79,12 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oauth2 -> oauth2
-                                .userInfoEndpoint(userInfoEndpointConfig ->
-                                        userInfoEndpointConfig
-                                                .userService(customOAuth2UserService)
-                                )
-                                .successHandler(oAuth2SuccessHandler)
-                                .failureHandler(new OAuth2FailureHandler())
+                        .authorizationEndpoint(a->a.baseUri("/api/auth/oauth2/authorize"))
+//                        .redirectionEndpoint(r->r.baseUri("/api/auth/oauth2/callback/*"))
+                        .redirectionEndpoint(r->r.baseUri("/login/oauth2/code/*"))
+                        .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig.userService(customOAuth2UserService))
+                        .successHandler(oAuth2SuccessHandler)
+                        .failureHandler(new OAuth2FailureHandler())
                 )
 //                .exceptionHandling(e -> e
 //                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))

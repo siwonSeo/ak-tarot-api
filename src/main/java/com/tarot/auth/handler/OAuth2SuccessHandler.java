@@ -24,7 +24,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {
-        log.error("소셜로그인 성공");
+        log.info("소셜로그인 성공");
+        log.info("소셜로그인 성공:{}",authentication);
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
 //        jwtTokenProvider.createRefreshToken(authentication, accessToken); //리프레시 로직 수정
 
