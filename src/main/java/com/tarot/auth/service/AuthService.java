@@ -76,10 +76,10 @@ public class AuthService {
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 customUserDetails, null, customUserDetails.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+//        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String accessToken = jwtTokenProvider.createAccessToken(authentication);
-        String refreshToken = jwtTokenProvider.createRefreshToken(customUserDetails);
+        String refreshToken = jwtTokenProvider.createRefreshToken(authentication);
 
         redisService.setValue(Constant.REDIS_ACCESS_TOKEN_KEY+customUserDetails.getId(),accessToken,validityRedisInMinutes * 60 * 1000);
         redisService.setValue(Constant.REDIS_REFRESH_TOKEN_KEY+customUserDetails.getId(),refreshToken,validityRedisInHours * 60 * 60 * 1000);

@@ -20,8 +20,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
   private final UserBaseRepository userBaseRepository;
 
   @Override
-  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    UserBase user = userBaseRepository.findByEmail(username).orElseThrow(() -> new ApiException(ErrorStatusMessage.FORBIDDEN_USER));
+  public UserDetails loadUserByUsername(String id) throws UsernameNotFoundException {
+//    UserBase user = userBaseRepository.findByEmail(username).orElseThrow(() -> new ApiException(ErrorStatusMessage.FORBIDDEN_USER));
+    UserBase user = userBaseRepository.findById(Integer.parseInt(id)).orElseThrow(() -> new ApiException(ErrorStatusMessage.FORBIDDEN_USER));
 
     return new CustomUserDetails(
             user.getId(),

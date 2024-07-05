@@ -1,5 +1,6 @@
 package com.tarot.common.filter;
 
+import com.tarot.common.constants.Constant;
 import com.tarot.common.jwt.JwtTokenProvider;
 import com.tarot.common.code.ErrorStatusMessage;
 import com.tarot.common.exception.ApiException;
@@ -23,7 +24,8 @@ import java.util.Arrays;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final String[] excludeUrls = {"/user","/api/user"};
+    private final String API_CARD_CONSULT_URL = "/api/card/consult"; //카드 상담은 로그인시에는 이력저장. 비 로그인시도 접근은 가능한 구조
+    private final String[] excludeUrls = {"/user","/api/user",API_CARD_CONSULT_URL};
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisService redisService;
 
@@ -36,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (token != null && jwtTokenProvider.validateToken(token)) {
                 String id = jwtTokenProvider.getUserId(token);
                 log.info("filter id:{}",id);
-                if(id != null && token.equals(redisService.getValue(jwtTokenProvider.getUserId(token)))){
+                if(id != null && token.equals(redisService.getValue(Constant.REDIS_ACCESS_TOKEN_KEY+jwtTokenProvider.getUserId(token)))){
                     Authentication auth = jwtTokenProvider.getAuthentication(token);
                     SecurityContextHolder.getContext().setAuthentication(auth); // 정상 토큰이면 SecurityContext에 저장
                 }else{
@@ -49,12 +51,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             filterChain.doFilter(request, response);
-        } catch (RedisConnectionFailureException e) {
-            SecurityContextHolder.clearContext();
-            throw new ApiException(ErrorStatusMessage.INTERNAL_SERVER);
         } catch (Exception e) {
+            if(isApiCard(request)){
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            log.error(e.getMessage());
             throw new ApiException(ErrorStatusMessage.INTERNAL_SERVER);
         }
+
+    }
+
+    private boolean isApiCard(HttpServletRequest request){
+        String path = request.getRequestURI();
+        return path.startsWith(API_CARD_CONSULT_URL);
 
     }
 

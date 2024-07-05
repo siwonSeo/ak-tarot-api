@@ -1,6 +1,7 @@
 package com.tarot.auth.controller;
 
 import com.tarot.auth.dto.response.LoginResponse;
+import com.tarot.auth.dto.response.ResponseToken;
 import com.tarot.common.config.DisableSwaggerSecurity;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +46,7 @@ public class AuthApiController {
   }
 
   @GetMapping("/success")
-  public ResponseEntity<LoginResponse> loginSuccess(@Valid LoginResponse loginResponse) {
-    return ResponseEntity.ok(loginResponse);
+  public ResponseEntity<ResponseToken> loginSuccess(@Valid ResponseToken responseToken) {
+    return ResponseEntity.ok(responseToken);
   }
 }

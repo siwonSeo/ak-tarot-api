@@ -56,6 +56,7 @@ public class UserService {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             log.info("UserService authentication:{}", authentication);
+            log.info("UserService authentication:{}", authentication.getName());
             log.info("UserService authentication:{}", authentication.getPrincipal());
             log.info("UserService authentication:{}", authentication.getPrincipal().getClass());
             if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
