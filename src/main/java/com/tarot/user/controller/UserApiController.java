@@ -19,12 +19,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
-@Controller
+@RestController
 public class UserApiController {
     private final UserTarotService userTarotService;
     private final UserService userService;
@@ -35,7 +36,6 @@ public class UserApiController {
         return new ResponseEntity<>(userService.getUserTarotCardConsults(pageable), HttpStatus.OK);
     }
 
-    @DisableSwaggerSecurity
     @GetMapping("/card/consult/{consultId}")
     public ResponseEntity<List<ResponseTarotCardConsult>> consult(@PathVariable("consultId") Integer consultId) {
         return new ResponseEntity<>(userTarotService.getConsult(consultId), HttpStatus.OK);
